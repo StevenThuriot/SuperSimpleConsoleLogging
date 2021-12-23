@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
+    <LangVersion>10.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Company>Steven Thuriot</Company>
+    <Description>Adds a super simple no special layout console logger instead of the default provided ones</Description>
+    <Copyright>Steven Thuriot</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <PackageProjectUrl>https://github.com/StevenThuriot/SuperSimpleConsoleLogging</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/StevenThuriot/SuperSimpleConsoleLogging</RepositoryUrl>
+    <PackageTags>console;logging;simple</PackageTags>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <Authors>Steven Thuriot</Authors>
+    <Version>0.0.2-preview</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+  </ItemGroup>
+</Project>
