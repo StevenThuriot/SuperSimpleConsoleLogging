@@ -8,9 +8,9 @@ namespace SuperSimpleConsoleLogging;
 internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposable
 {
     private readonly IDisposable _optionsReloadToken;
-    private ConsoleFormatterOptions FormatterOptions { get; set; }
+    private SuperSimpleConsoleFormatterOptions FormatterOptions { get; set; }
 
-    public SuperSimpleConsoleFormatter(IOptionsMonitor<ConsoleFormatterOptions> options)
+    public SuperSimpleConsoleFormatter(IOptionsMonitor<SuperSimpleConsoleFormatterOptions> options)
         : base(nameof(SuperSimpleConsoleFormatter))
     {
         FormatterOptions = options.CurrentValue;
@@ -30,13 +30,21 @@ internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposabl
             return;
         }
 
+        bool inColor = false;
+
         LogLevel logLevel = logEntry.LogLevel;
         Exception? exception = logEntry.Exception;
 
-        string? syslogSeverityString = GetLogLevelString(logLevel);
-        if (syslogSeverityString is not null)
+        var syslogSeverityString = GetLogLevelString(logLevel);
+        if (syslogSeverityString != default)
         {
-            textWriter.Write(syslogSeverityString);
+            if (FormatterOptions.Colorized && syslogSeverityString.color is not null)
+            {
+                inColor = true;
+                textWriter.Write(syslogSeverityString.color);
+            }
+
+            textWriter.Write(syslogSeverityString.syslogSeverity);
             textWriter.Write(": ");
         }
 
@@ -50,34 +58,48 @@ internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposabl
 
         if (!string.IsNullOrEmpty(text))
         {
-            WriteReplacingNewLine(textWriter, text);
+            WriteReplacingNewLine(text);
         }
 
         if (exception is not null)
         {
             textWriter.Write(' ');
-            WriteReplacingNewLine(textWriter, exception.ToString());
+            WriteReplacingNewLine(exception.ToString());
+        }
+
+        if (inColor)
+        {
+            textWriter.Write(Reset);
         }
 
         textWriter.Write(Environment.NewLine);
 
-        static void WriteReplacingNewLine(TextWriter writer, string message)
+        void WriteReplacingNewLine(string message)
         {
             string value = message.Replace(Environment.NewLine, " ");
-            writer.Write(value);
+            textWriter.Write(value);
         }
     }
 
     private DateTimeOffset GetCurrentDateTime() => FormatterOptions.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now;
 
-    private static string? GetLogLevelString(LogLevel logLevel) => logLevel switch
+    const string Black =  "\u001b[30m";
+    const string Red =  "\u001b[31m";
+    const string Green =  "\u001b[32m";
+    const string Yellow =  "\u001b[33m";
+    const string Blue =  "\u001b[34m";
+    const string Magenta =  "\u001b[35m";
+    const string Cyan =  "\u001b[36m";
+    const string White =  "\u001b[37m";
+    const string Reset = "\u001b[0m";
+    private static (string syslogSeverity, string? color) GetLogLevelString(LogLevel logLevel) => logLevel switch
     {
-        LogLevel.Trace => "trce",
-        LogLevel.Debug => "dbug",
+        LogLevel.Trace => ("trce", null),
+        LogLevel.Debug => ("dbug", Magenta),
         //LogLevel.Information => "info",
-        LogLevel.Warning => "warn",
-        LogLevel.Error => "fail",
-        LogLevel.Critical => "crit",
-        _ => null,
+        LogLevel.Warning => ("warn", Yellow),
+        LogLevel.Error => ("fail", Red),
+        LogLevel.Critical => ("crit", Red),
+        _ => default,
     };
 }
