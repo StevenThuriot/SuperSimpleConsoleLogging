@@ -44,8 +44,11 @@ internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposabl
                 textWriter.Write(syslogSeverityString.color);
             }
 
-            textWriter.Write(syslogSeverityString.syslogSeverity);
-            textWriter.Write(": ");
+            if (FormatterOptions.PrefixLevel)
+            {
+                textWriter.Write(syslogSeverityString.syslogSeverity);
+                textWriter.Write(": ");
+            }
         }
 
         string timestampFormat = FormatterOptions.TimestampFormat;
@@ -64,7 +67,15 @@ internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposabl
         if (exception is not null)
         {
             textWriter.Write(' ');
-            WriteReplacingNewLine(exception.ToString());
+
+            if (FormatterOptions.ExceptionMessageOnly)
+            {
+                WriteReplacingNewLine(exception.Message);
+            }
+            else
+            {
+                WriteReplacingNewLine(exception.ToString());
+            }
         }
 
         if (inColor)
@@ -76,8 +87,12 @@ internal sealed class SuperSimpleConsoleFormatter : ConsoleFormatter, IDisposabl
 
         void WriteReplacingNewLine(string message)
         {
-            string value = message.Replace(Environment.NewLine, " ");
-            textWriter.Write(value);
+            if (FormatterOptions.ReplaceNewLine is not null)
+            {
+                message = message.Replace(Environment.NewLine, FormatterOptions.ReplaceNewLine);
+            }
+
+            textWriter.Write(message);
         }
     }
 
